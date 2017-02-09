@@ -19,36 +19,42 @@ class BattlefieldServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
 
   override def attack(userId: String, attackRequest: AttackRequest): Future[AttackResponse] = {
     pool{
-      val result = matrix.withWriteLock{
-        for {
+      matrix.withWriteLock{
+        val maybeOutput = for {
           source <- matrix.get(userId)
           targetId <- source.opponentId
           target <- matrix.get(targetId)
         } yield {
-          processAttack(AttackInputOutput(source, target, Location(attackRequest.x, attackRequest.y)))
+
+          validation(source, target)
+
+          val input = AttackInputOutput(self = source,
+            opponent = target,
+            loc = Location(attackRequest.x, attackRequest.y))
+
+          handler(input)
         }
+
+        maybeOutput.map{output =>
+          AttackResponse(
+            result = output.result.getOrElse(throw new IllegalStateException(s"Unable to retrieve the attack result: $userId, attackRequest: $attackRequest")),
+            self = UserDetailsResponse(output.self),
+            opponent = UserDetailsResponse(output.opponent)
+          )
+        }.getOrElse(
+          throw new IllegalStateException(s"Unable to process the request: $userId, attackRequest: $attackRequest")
+        )
       }
 
-      result.flatten.getOrElse {
-        val source = matrix.get(userId)
-        val target = source.flatMap(u => u.opponentId.flatMap(matrix.get))
-          throw new IllegalStateException(s"Unexpected state: source: $source, target: $target, loc: $attackRequest")
-      }
     }
   }
 
-  def processAttack(attack: AttackInputOutput): Option[AttackResponse] = {
-    val inputOutput = (record andThen process andThen modifyUsers) (attack)
-    matrix.addOrUpdate(inputOutput.source)
-    matrix.addOrUpdate(inputOutput.target)
-
-    inputOutput.result.map(output =>
-      AttackResponse(output,
-        UserDetailsResponse(inputOutput.source),
-        UserDetailsResponse(inputOutput.target)
-      )
-    )
+  def validation(source: User, target: User): Unit = {
+    if ( source.state != UserState.Active && target.state != UserState.Passive)
+      throw new IllegalArgumentException(s"Cannot attack when you are not in attack mode, userId: ${source.id}")
   }
+
+  def handler = record andThen process andThen modifyUsers
 
   val record: (AttackInputOutput) => (AttackInputOutput) = {
     case AttackInputOutput(source, target, loc, _) =>
@@ -97,8 +103,8 @@ class BattlefieldServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
         (UserState.Passive, UserState.Active)
 
       AttackInputOutput(
-        source = source.copy(state = newSourceState),
-        target = target.copy(state = newTargetState),
+        self = source.copy(state = newSourceState),
+        opponent = target.copy(state = newTargetState),
         loc = loc,
         result = Some(attackReturn)
       )
@@ -106,4 +112,4 @@ class BattlefieldServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
 
 }
 
-case class AttackInputOutput(source: User, target: User, loc: Location, result: Option[AttackResult] = None)
+case class AttackInputOutput(self: User, opponent: User, loc: Location, result: Option[AttackResult] = None)

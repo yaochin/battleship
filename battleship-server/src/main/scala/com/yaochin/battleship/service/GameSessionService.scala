@@ -5,7 +5,7 @@ import javax.inject.{Inject, Singleton}
 import com.twitter.util.{Future, FuturePool}
 import com.yaochin.battleship.domain._
 import com.yaochin.battleship.domain.api._
-import com.yaochin.battleship.util.{IdGenerator, ProcessHelper}
+import com.yaochin.battleship.util.IdGenerator
 import grizzled.slf4j.Logging
 
 /**
@@ -20,21 +20,18 @@ trait GameSessionService {
 @Singleton
 class GameSessionServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix, idGenerator: IdGenerator)
   extends GameSessionService
-  with ProcessHelper
   with Logging {
 
   override def join(joinRequest: JoinRequest): Future[JoinResponse] = {
     pool {
       val newUserId = idGenerator.next
-      val maybeOpponent = waitUntil(totalInSeconds = 3, sleepInSeconds = 1) {
-        gameMatrix.withWriteLock{
-          gameMatrix.nextAvailableSession match {
-            case Some(session) =>
-              val updatedSession = session.copy(opponentId = Some(newUserId), state = UserState.Active)
-              gameMatrix.addOrUpdate(updatedSession)
-              Some(updatedSession)
-            case None => None
-          }
+      val maybeOpponent = gameMatrix.withWriteLock {
+        gameMatrix.nextAvailableSession match {
+          case Some(session) =>
+            val updatedSession = session.copy(opponentId = Some(newUserId), state = UserState.Active)
+            gameMatrix.addOrUpdate(updatedSession)
+            Some(updatedSession)
+          case None => None
         }
       }
 

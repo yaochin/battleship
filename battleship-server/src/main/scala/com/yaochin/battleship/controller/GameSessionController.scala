@@ -44,12 +44,12 @@ class GameSessionController @Inject()(service: GameSessionService)
       .tag("Game Session")
       .routeParam[String]("userId")
       .responseWith[UserDetailsResponse](200, "User")
-      .responseWith(404, "Not found")
+      .responseWith(404, "Not Found")
   } { req: Request =>
     val userId = req.getParam("userId")
     service.get(userId).map{
       case Some(u) => response.ok.json(u)
-      case None => response.notFound
+      case None => response.notFound.jsonError("Resource URL not found")
     }
   }
 }
