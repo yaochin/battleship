@@ -4,7 +4,7 @@ import java.util.concurrent.Executors
 
 import com.twitter.util.FuturePool
 import com.yaochin.battleship.domain._
-import com.yaochin.battleship.domain.representation.{BattleshipRepresentation, LocationRepresentation}
+import com.yaochin.battleship.domain.api.{BattleshipRequest, LocationRequest}
 import com.yaochin.battleship.util.IdGenerator
 import org.scalatest.{FreeSpec, Matchers}
 
@@ -39,8 +39,8 @@ class GameSessionServiceImplTest extends FreeSpec with Matchers {
       val userId = IdGenerator.next
       val opponentId = IdGenerator.next
       val ships = Seq(
-        BattleshipRepresentation(List(LocationRepresentation(1, 2), LocationRepresentation(2, 2))),
-        BattleshipRepresentation(List(LocationRepresentation(3, 4)))
+        BattleshipRequest(List(LocationRequest(1, 2), LocationRequest(2, 2))),
+        BattleshipRequest(List(LocationRequest(3, 4)))
       )
 
       // When

@@ -28,7 +28,7 @@ trait GameMatrix extends ReadWriteLockHelper{
     userSessions += (userSession.id -> userSession)
   }
 
-  def listUserSessions: Seq[User] = {
+  def list: Seq[User] = {
     userSessions.values.toSeq
   }
 

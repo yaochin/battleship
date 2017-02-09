@@ -1,5 +1,6 @@
 package com.yaochin.battleship.domain
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.yaochin.battleship.domain.UserState.UserState
 
 /**
@@ -36,6 +37,8 @@ case class User(id: String,
 }
 
 object UserState extends Enumeration {
-  type UserState = UserState.Value
+  type UserState = Value
   val Won, Lost, Active, Passive, Initial = Value
 }
+
+class UserStateType extends TypeReference[UserState.type]

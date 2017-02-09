@@ -47,12 +47,12 @@ class BattleshipTest extends FreeSpec with Matchers{
       val updated = ship.updateShipIfNecessary(Location(1,3))
 
       // Then
-      ship.locations should be(Map(
+      ship.locationAndStateMap should be(Map(
         Location(1,2) -> ShipLocationState.Normal,
         Location(1,3) -> ShipLocationState.Normal
       ))
 
-      updated.locations should be(Map(
+      updated.locationAndStateMap should be(Map(
         Location(1,2) -> ShipLocationState.Normal,
         Location(1,3) -> ShipLocationState.Hit
       ))

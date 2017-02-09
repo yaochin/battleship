@@ -1,21 +1,24 @@
 package com.yaochin.battleship.domain
 
+import com.fasterxml.jackson.core.`type`.TypeReference
+import com.yaochin.battleship.domain.ShipLocationState.ShipLocationState
+
 /**
   * Created on 1/31/17.
   */
-case class Battleship(locations: Map[Location, ShipLocationState.Value]) {
+case class Battleship(locationAndStateMap: Map[Location, ShipLocationState]) {
 
   def isAlive: Boolean = {
-    locations.values.exists(_ == ShipLocationState.Normal)
+    locationAndStateMap.values.exists(_ == ShipLocationState.Normal)
   }
 
   def contains(target: Location): Boolean = {
-    locations.contains(target)
+    locationAndStateMap.contains(target)
   }
 
   def updateShipIfNecessary(target: Location): Battleship = {
-    if ( locations.contains(target) ) {
-      copy(locations = locations + (target -> ShipLocationState.Hit))
+    if ( locationAndStateMap.contains(target) ) {
+      copy(locationAndStateMap = locationAndStateMap + (target -> ShipLocationState.Hit))
     } else {
       this
     }
@@ -26,10 +29,13 @@ case class Battleship(locations: Map[Location, ShipLocationState.Value]) {
 case class Location(x: Int, y: Int)
 
 object ShipLocationState extends Enumeration {
+  type ShipLocationState = Value
   val Normal, Hit = Value
 }
+class ShipLocationStateType extends TypeReference[ShipLocationState.type]
 
-object AttackReturn extends Enumeration {
-  type AttackReturn = AttackReturn.Value
+object AttackResult extends Enumeration {
+  type AttackResult = Value
   val Hit, Miss, Sunk, AlreadyTaken, Win = Value
 }
+class AttackResultType extends TypeReference[AttackResult.type]

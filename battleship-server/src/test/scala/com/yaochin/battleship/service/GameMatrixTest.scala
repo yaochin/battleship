@@ -1,6 +1,6 @@
 package com.yaochin.battleship.service
 
-import com.yaochin.battleship.domain.{UserState, UserSessionBuilder}
+import com.yaochin.battleship.domain.{UserState, UserBuilder}
 import org.scalatest.{FreeSpec, Matchers}
 
 /**
@@ -12,9 +12,9 @@ class GameMatrixTest extends FreeSpec with Matchers{
     "return userSession w/o opponent" in {
       // Given
       val gameMatrix = new GameMatrix {}
-      val userSession1 = UserSessionBuilder().build
-      val userSession2 = UserSessionBuilder().build
-      val userWithoutOpponent = UserSessionBuilder().withoutOpponentId.build
+      val userSession1 = UserBuilder().build
+      val userSession2 = UserBuilder().build
+      val userWithoutOpponent = UserBuilder().withoutOpponentId.build
       gameMatrix.addOrUpdate(userSession1)
       gameMatrix.addOrUpdate(userSession2)
       gameMatrix.addOrUpdate(userWithoutOpponent)
@@ -28,7 +28,7 @@ class GameMatrixTest extends FreeSpec with Matchers{
     "replace existing one" in {
       // Given
       val gameMatrix = new GameMatrix {}
-      val userSession = UserSessionBuilder().build
+      val userSession = UserBuilder().build
       gameMatrix.addOrUpdate(userSession)
       val updated = userSession.copy(state = UserState.Won)
 

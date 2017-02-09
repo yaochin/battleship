@@ -13,7 +13,7 @@ class UserTest extends FreeSpec with Matchers {
       val battleship = BattleshipBuilder()
         .withLocation(1, 2)
         .build
-      val userSession = UserSessionBuilder()
+      val userSession = UserBuilder()
         .withEvents(List(SetupEvent(battleship)))
         .build
 

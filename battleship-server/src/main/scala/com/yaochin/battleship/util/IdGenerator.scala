@@ -8,7 +8,7 @@ import java.util.UUID
 trait IdGenerator {
 
   def next: String = {
-    UUID.randomUUID().toString.replaceAll("-", "").substring(12)
+    UUID.randomUUID().toString.replaceAll("-", "").takeRight(10)
   }
 
 }

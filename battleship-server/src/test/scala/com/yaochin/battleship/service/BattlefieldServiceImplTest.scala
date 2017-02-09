@@ -1,6 +1,6 @@
 package com.yaochin.battleship.service
 
-import com.yaochin.battleship.domain.{AttackEvent, Event, UserSessionBuilder}
+import com.yaochin.battleship.domain.{AttackEvent, Event, UserBuilder}
 import org.scalatest.{FreeSpec, Matchers}
 
 /**
@@ -9,7 +9,7 @@ import org.scalatest.{FreeSpec, Matchers}
 class BattlefieldServiceImplTest extends FreeSpec with Matchers {
 
   def createUserSession(events: List[Event] = List(AttackEvent(1, 2), AttackEvent(2, 2))) = {
-    UserSessionBuilder()
+    UserBuilder()
       .withEvents(events)
       .build
   }

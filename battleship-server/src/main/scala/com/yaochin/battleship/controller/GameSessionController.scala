@@ -6,7 +6,7 @@ import com.github.xiaodongw.swagger.finatra.SwaggerSupport
 import com.twitter.finagle.http.Request
 import com.twitter.finatra.http.Controller
 import com.yaochin.battleship.BattleshipSwagger
-import com.yaochin.battleship.domain.representation.{JoinResponseRepresentation, JoinRequestRepresentation, UserSessionsRepresentation}
+import com.yaochin.battleship.domain.api._
 import com.yaochin.battleship.service.GameSessionService
 import com.yaochin.battleship.util.JsonSupport
 
@@ -20,22 +20,36 @@ class GameSessionController @Inject()(service: GameSessionService)
 
   implicit protected val swagger = BattleshipSwagger
 
-  postWithDoc("/battleship/join") { o =>
+  postWithDoc("/battleship/users/") { o =>
     o.summary("Enter a battleship game")
       .tag("Game Session")
-      .bodyParam[JoinRequestRepresentation]("JoinRequestRepresentation")
-      .responseWith[JoinResponseRepresentation](200, "Join a new game")
+      .bodyParam[JoinRequest]("JoinRequestRepresentation")
+      .responseWith[JoinResponse](200, "Join a new game")
   } { req: Request =>
-    val request =  fromJson[JoinRequestRepresentation](req.contentString)
+    val request =  fromJson[JoinRequest](req.contentString)
 
     service.join(request).map(response.ok.json _)
   }
 
-  getWithDoc("/battleship/list_queue") { o =>
+  getWithDoc("/battleship/users") { o =>
     o.summary("Return the current waiting list")
       .tag("Game Session")
-      .responseWith[UserSessionsRepresentation](200, "Current waiting list")
+      .responseWith[UserResponses](200, "List of users")
   } { req: Request =>
-    service.listUserSessions.map(response.ok.json _)
+    service.listUsers.map(response.ok.json _)
+  }
+
+  getWithDoc("/battleship/users/:userId") { o =>
+    o.summary("Get the user info")
+      .tag("Game Session")
+      .routeParam[String]("userId")
+      .responseWith[UserDetailsResponse](200, "User")
+      .responseWith(404, "Not found")
+  } { req: Request =>
+    val userId = req.getParam("userId")
+    service.get(userId).map{
+      case Some(u) => response.ok.json(u)
+      case None => response.notFound
+    }
   }
 }

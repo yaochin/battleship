@@ -2,51 +2,58 @@ package com.yaochin.battleship.service
 
 import javax.inject.Inject
 
-import com.twitter.util.{FuturePool, Future}
-import com.yaochin.battleship.domain.AttackReturn
-import com.yaochin.battleship.domain.AttackReturn._
-import com.yaochin.battleship.domain._
-import com.yaochin.battleship.domain.representation.AttackRequestRepresentation
-import com.yaochin.battleship.domain.representation.AttackRequestRepresentation._
+import com.twitter.util.{Future, FuturePool}
+import com.yaochin.battleship.domain.AttackResult._
+import com.yaochin.battleship.domain.{AttackResult, _}
+import com.yaochin.battleship.domain.api.{UserDetailsResponse, AttackResponse, AttackRequest}
 
 /**
   * Created on 1/31/17.
   */
 trait BattlefieldService {
-  def attack(userId: String, attackRequest: AttackRequestRepresentation): Future[AttackReturn]
+  def attack(userId: String, attackRequest: AttackRequest): Future[AttackResponse]
 }
 
 class BattlefieldServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
   extends BattlefieldService {
 
-  override def attack(userId: String, attackRequest: AttackRequestRepresentation): Future[AttackReturn] = {
+  override def attack(userId: String, attackRequest: AttackRequest): Future[AttackResponse] = {
     pool{
-      val result = for {
-        source <- matrix.get(userId)
-        target <- matrix.get(attackRequest.opponentId)
-      } yield {
-        processAttack(AttackInputOutput(source, target, attackRequest.location))
+      val result = matrix.withWriteLock{
+        for {
+          source <- matrix.get(userId)
+          targetId <- source.opponentId
+          target <- matrix.get(targetId)
+        } yield {
+          processAttack(AttackInputOutput(source, target, Location(attackRequest.x, attackRequest.y)))
+        }
       }
 
-      result.flatten.getOrElse(
-        throw new IllegalStateException(s"Unexpected state: source: ${matrix.get(userId)}, target: ${matrix.get(attackRequest.opponentId)}, target: $attackRequest")
-      )
+      result.flatten.getOrElse {
+        val source = matrix.get(userId)
+        val target = source.flatMap(u => u.opponentId.flatMap(matrix.get))
+          throw new IllegalStateException(s"Unexpected state: source: $source, target: $target, loc: $attackRequest")
+      }
     }
   }
 
-  def processAttack(attack: AttackInputOutput): Option[AttackReturn] = {
-    matrix.withWriteLock {
-      val inputOutput = (record andThen process andThen modifyUsers) (attack)
-      matrix.addOrUpdate(inputOutput.source)
-      matrix.addOrUpdate(inputOutput.target)
-      inputOutput.result
-    }
+  def processAttack(attack: AttackInputOutput): Option[AttackResponse] = {
+    val inputOutput = (record andThen process andThen modifyUsers) (attack)
+    matrix.addOrUpdate(inputOutput.source)
+    matrix.addOrUpdate(inputOutput.target)
+
+    inputOutput.result.map(output =>
+      AttackResponse(output,
+        UserDetailsResponse(inputOutput.source),
+        UserDetailsResponse(inputOutput.target)
+      )
+    )
   }
 
   val record: (AttackInputOutput) => (AttackInputOutput) = {
     case AttackInputOutput(source, target, loc, _) =>
       if (target.hasTaken(loc)){
-        AttackInputOutput(source, target, loc, Some(AttackReturn.AlreadyTaken))
+        AttackInputOutput(source, target, loc, Some(AttackResult.AlreadyTaken))
       } else {
         val updatedTarget = target.addEvent(AttackEvent(loc))
         AttackInputOutput(source, updatedTarget, loc, None)
@@ -68,23 +75,23 @@ class BattlefieldServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
           val targetUpdated = target.copy(fleet = ships)
 
           val attackReturn = if (targetUpdated.hasLost) {
-            AttackReturn.Win
+            AttackResult.Win
           } else if (targetUpdated.hasSunk(loc)) {
-            AttackReturn.Sunk
+            AttackResult.Sunk
           } else {
-            AttackReturn.Hit
+            AttackResult.Hit
           }
 
           AttackInputOutput(source, targetUpdated, loc, Some(attackReturn))
         case _ =>
           // miss
-          AttackInputOutput(source, target, loc, Some(AttackReturn.Miss))
+          AttackInputOutput(source, target, loc, Some(AttackResult.Miss))
       }
   }
 
   val modifyUsers: (AttackInputOutput) => (AttackInputOutput) = {
     case AttackInputOutput(source, target, loc, Some(attackReturn)) =>
-      val (newSourceState, newTargetState) = if (attackReturn == AttackReturn.Win)
+      val (newSourceState, newTargetState) = if (attackReturn == AttackResult.Win)
         (UserState.Won, UserState.Lost)
       else
         (UserState.Passive, UserState.Active)
@@ -99,4 +106,4 @@ class BattlefieldServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
 
 }
 
-case class AttackInputOutput(source: User, target: User, loc: Location, result: Option[AttackReturn] = None)
+case class AttackInputOutput(source: User, target: User, loc: Location, result: Option[AttackResult] = None)
