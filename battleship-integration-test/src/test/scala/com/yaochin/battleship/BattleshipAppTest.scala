@@ -6,7 +6,7 @@ import com.twitter.inject.server.FeatureTestMixin
 import com.twitter.util.Future
 import com.yaochin.battleship.domain._
 import com.yaochin.battleship.domain.api._
-import com.yaochin.battleship.service.{BattleServiceImpl, BattleService, UserService, UserServiceImpl}
+import com.yaochin.battleship.service.{BattleService, BattleServiceImpl, UserService, UserServiceImpl}
 import com.yaochin.battleship.util.JsonSupport
 import org.mockito.Matchers._
 import org.mockito.Mockito._

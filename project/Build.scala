@@ -14,7 +14,7 @@ object Build extends Build {
     id = "battleship-service",
     base = file("."),
     settings = settings ++ Seq(publishArtifact := false)
-  ).aggregate(server, serverFeatureTest)
+  ).aggregate(server, intTest)
 
   lazy val server = Project(
     id = "server",
@@ -22,9 +22,9 @@ object Build extends Build {
     settings = settings
   )
 
-  lazy val serverFeatureTest = Project(
-    id = "server-feature-test",
-    base = file("battleship-server-feature-test"),
+  lazy val intTest = Project(
+    id = "int-test",
+    base = file("battleship-integration-test"),
     settings = settings
   ) .dependsOn(server % "test->test;test->compile")
 }
