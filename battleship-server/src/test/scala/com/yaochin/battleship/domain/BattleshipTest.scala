@@ -16,7 +16,7 @@ class BattleshipTest extends FreeSpec with Matchers{
       ))
 
       // When
-      ship.updateShipIfNecessary(Location(1,2)) should be(Battleship(Map(
+      ship.updateIfNecessary(Location(1,2)) should be(Battleship(Map(
         Location(1,2) -> ShipLocationState.Hit,
         Location(1,3) -> ShipLocationState.Normal
       )))
@@ -30,7 +30,7 @@ class BattleshipTest extends FreeSpec with Matchers{
       ))
 
       // When
-      ship.updateShipIfNecessary(Location(1,4)) should be(Battleship(Map(
+      ship.updateIfNecessary(Location(1,4)) should be(Battleship(Map(
         Location(1,2) -> ShipLocationState.Normal,
         Location(1,3) -> ShipLocationState.Normal
       )))
@@ -44,7 +44,7 @@ class BattleshipTest extends FreeSpec with Matchers{
       ))
 
       // When
-      val updated = ship.updateShipIfNecessary(Location(1,3))
+      val updated = ship.updateIfNecessary(Location(1,3))
 
       // Then
       ship.locationAndStateMap should be(Map(

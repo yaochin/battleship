@@ -11,22 +11,22 @@ import grizzled.slf4j.Logging
 /**
   * Created on 2/5/17.
   */
-trait GameSessionService {
+trait UserService {
   def join(joinRequest: JoinRequest): Future[JoinResponse]
   def get(userId: String): Future[Option[UserDetailsResponse]]
-  def listUsers: Future[UserResponses]
+  def list: Future[UserResponses]
 }
 
 @Singleton
-class GameSessionServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix, idGenerator: IdGenerator)
-  extends GameSessionService
+class UserServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix, idGenerator: IdGenerator)
+  extends UserService
   with Logging {
 
   override def join(joinRequest: JoinRequest): Future[JoinResponse] = {
     pool {
       val newUserId = idGenerator.next
       val maybeOpponent = gameMatrix.withWriteLock {
-        gameMatrix.nextAvailableSession match {
+        gameMatrix.nextAvailableUser match {
           case Some(session) =>
             val updatedSession = session.copy(opponentId = Some(newUserId), state = UserState.Active)
             gameMatrix.addOrUpdate(updatedSession)
@@ -35,7 +35,7 @@ class GameSessionServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix,
         }
       }
 
-      val userSession = createNewUserSession(newUserId, maybeOpponent.map(_.id), joinRequest.battleships)
+      val userSession = createNewUser(newUserId, maybeOpponent.map(_.id), joinRequest.battleships)
       gameMatrix.addOrUpdate(userSession)
 
       JoinResponse(userSession.id, userSession.opponentId, joinRequest)
@@ -46,18 +46,18 @@ class GameSessionServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix,
     Future.value(gameMatrix.get(userId).map(UserDetailsResponse(_)))
   }
 
-  override def listUsers: Future[UserResponses] = {
+  override def list: Future[UserResponses] = {
     pool {
       UserResponses(gameMatrix.list.map(UserResponse(_)))
     }
   }
 
-  private[service] def createNewUserSession(userId: String, opponentId: Option[String], battleships: Seq[BattleshipRequest]): User = {
+  private[service] def createNewUser(userId: String, opponentId: Option[String], battleships: Seq[BattleshipRequest]): User = {
 
     val initState = if (opponentId.isDefined) UserState.Passive
                     else UserState.Initial
 
-    val fleet = battleships.map(fromBattleshipRepresentation _)
+    val fleet = battleships.map(fromBattleshipRequest _)
 
     User(id = userId,
       opponentId = opponentId,
@@ -67,8 +67,8 @@ class GameSessionServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix,
     )
   }
 
-  private[service] def fromBattleshipRepresentation(battleshipRepresentation: BattleshipRequest): Battleship = {
-    val locationInfo: Map[Location, ShipLocationState.Value] = battleshipRepresentation.locations
+  private[service] def fromBattleshipRequest(battleship: BattleshipRequest): Battleship = {
+    val locationInfo: Map[Location, ShipLocationState.Value] = battleship.locations
       .map(loc => Location(loc.x, loc.y) -> ShipLocationState.Normal)
       .toMap
     Battleship(locationInfo)

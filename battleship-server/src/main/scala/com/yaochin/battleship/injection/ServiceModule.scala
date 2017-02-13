@@ -19,7 +19,7 @@ class ServiceModule extends AbstractModule {
 
     bind(classOf[IdGenerator]).toInstance(IdGenerator)
 
-    bind(classOf[GameSessionService]).to(classOf[GameSessionServiceImpl])
-    bind(classOf[BattlefieldService]).to(classOf[BattlefieldServiceImpl])
+    bind(classOf[UserService]).to(classOf[UserServiceImpl])
+    bind(classOf[BattleService]).to(classOf[BattleServiceImpl])
   }
 }

@@ -11,7 +11,7 @@ import com.twitter.finatra.http.response.ResponseBuilder
 import com.twitter.finatra.http.routing.HttpRouter
 import com.twitter.finatra.json.modules.FinatraJacksonModule
 import com.twitter.finatra.json.utils.CamelCasePropertyNamingStrategy
-import com.yaochin.battleship.controller.{BattlefieldController, GameSessionController}
+import com.yaochin.battleship.controller.{BattleController, UserController}
 import com.yaochin.battleship.domain.api.ErrorResponse
 import com.yaochin.battleship.injection.ServiceModule
 import io.swagger.models.{Info, Swagger}
@@ -19,7 +19,9 @@ import io.swagger.models.{Info, Swagger}
 /**
   * Created on 1/31/17.
   */
-object BattleshipApp extends HttpServer{
+object BattleshipMain extends BattleshipApp
+
+class BattleshipApp extends HttpServer{
   val info = new Info()
     .description("Battleship backend API")
     .version("0.0.1")
@@ -35,8 +37,8 @@ object BattleshipApp extends HttpServer{
       .exceptionMapper[IllegalArgumentExceptionMapper]
       .add[WebjarsController]
       .add(new SwaggerController(swagger = BattleshipSwagger))
-      .add[GameSessionController]
-      .add[BattlefieldController]
+      .add[UserController]
+      .add[BattleController]
 
   }
 

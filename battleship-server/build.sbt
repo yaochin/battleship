@@ -1,7 +1,27 @@
 name := "battleship-server"
 
+
+val finatra = "2.8.0"
+
 libraryDependencies ++= Seq(
-  "com.twitter" % "finatra-http_2.11" % "2.2.0",
+  "com.twitter" %% "finatra-http" % finatra,
+
+  "com.twitter" %% "finatra-http" % finatra % "test",
+  "com.twitter" %% "inject-server" % finatra % "test",
+  "com.twitter" %% "finatra-jackson" % finatra % "test",
+  "com.twitter" %% "inject-app" % finatra % "test",
+  "com.twitter" %% "inject-core" % finatra % "test",
+  "com.twitter" %% "inject-modules" % finatra % "test",
+
+  "com.google.inject.extensions" % "guice-testlib" % "4.0" % "test",
+
+  "com.twitter" %% "finatra-http" % finatra % "test" classifier "tests",
+  "com.twitter" %% "finatra-jackson" % finatra % "test" classifier "tests",
+  "com.twitter" %% "inject-server" % finatra % "test" classifier "tests",
+  "com.twitter" %% "inject-app" % finatra % "test" classifier "tests",
+  "com.twitter" %% "inject-core" % finatra % "test" classifier "tests",
+  "com.twitter" %% "inject-modules" % finatra % "test" classifier "tests",
+
   "com.github.xiaodongw" %% "swagger-finatra" % "0.7.1",
   "io.swagger" % "swagger-core" % "1.5.12",
 

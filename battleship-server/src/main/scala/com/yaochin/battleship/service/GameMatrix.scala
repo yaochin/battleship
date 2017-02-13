@@ -10,26 +10,26 @@ import scala.collection.mutable
   */
 trait GameMatrix extends ReadWriteLockHelper{
 
-  private val userSessions = mutable.Map[String, User]()
+  private val users = mutable.Map[String, User]()
 
   def get(userId: String): Option[User] = {
-    userSessions.get(userId)
+    users.get(userId)
   }
 
-  def nextAvailableSession: Option[User] = {
-    userSessions.values.find(_.opponentId.isEmpty)
+  def nextAvailableUser: Option[User] = {
+    users.values.find(_.opponentId.isEmpty)
   }
 
   def remove(userId: String): Unit = {
-    userSessions -= userId
+    users -= userId
   }
 
-  def addOrUpdate(userSession: User): Unit = {
-    userSessions += (userSession.id -> userSession)
+  def addOrUpdate(user: User): Unit = {
+    users += (user.id -> user)
   }
 
   def list: Seq[User] = {
-    userSessions.values.toSeq
+    users.values.toSeq
   }
 
 }

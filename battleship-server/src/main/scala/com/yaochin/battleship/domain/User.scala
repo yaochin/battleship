@@ -34,6 +34,13 @@ case class User(id: String,
     !fleet.exists(ship => ship.isAlive)
   }
 
+  def handleAttack(loc: Location): User = {
+    val updated = fleet.map{ ship =>
+      ship.updateIfNecessary(loc)
+    }
+    copy(fleet = updated)
+  }
+
 }
 
 object UserState extends Enumeration {

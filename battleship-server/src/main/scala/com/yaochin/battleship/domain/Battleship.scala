@@ -16,7 +16,7 @@ case class Battleship(locationAndStateMap: Map[Location, ShipLocationState]) {
     locationAndStateMap.contains(target)
   }
 
-  def updateShipIfNecessary(target: Location): Battleship = {
+  def updateIfNecessary(target: Location): Battleship = {
     if ( locationAndStateMap.contains(target) ) {
       copy(locationAndStateMap = locationAndStateMap + (target -> ShipLocationState.Hit))
     } else {

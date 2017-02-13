@@ -9,7 +9,7 @@ import org.scalatest.{FreeSpec, Matchers}
 class GameMatrixTest extends FreeSpec with Matchers{
 
   "nextAvailableSession" - {
-    "return userSession w/o opponent" in {
+    "return user w/o opponent" in {
       // Given
       val gameMatrix = new GameMatrix {}
       val userSession1 = UserBuilder().build
@@ -20,23 +20,37 @@ class GameMatrixTest extends FreeSpec with Matchers{
       gameMatrix.addOrUpdate(userWithoutOpponent)
 
       // When / Then
-      gameMatrix.nextAvailableSession should be(Some(userWithoutOpponent))
+      gameMatrix.nextAvailableUser should be(Some(userWithoutOpponent))
     }
   }
 
   "addOrUpdate" - {
-    "replace existing one" in {
+    "replace existing user" in {
       // Given
       val gameMatrix = new GameMatrix {}
-      val userSession = UserBuilder().build
-      gameMatrix.addOrUpdate(userSession)
-      val updated = userSession.copy(state = UserState.Won)
+      val user = UserBuilder().build
+      gameMatrix.addOrUpdate(user)
+      val updated = user.copy(state = UserState.Won)
 
       // When
       gameMatrix.addOrUpdate(updated)
 
       // Then
-      gameMatrix.get(userSession.id) should be(Some(updated))
+      gameMatrix.get(user.id) should be(Some(updated))
+    }
+  }
+
+  "get" - {
+    "return user" in {
+      // Given
+      val gameMatrix = new GameMatrix {}
+      val user = UserBuilder().build
+
+      gameMatrix.addOrUpdate(user)
+
+      // When / Then
+      gameMatrix.get(user.id) should be(Some(user))
+
     }
   }
 

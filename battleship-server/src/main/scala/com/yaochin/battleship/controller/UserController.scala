@@ -7,13 +7,13 @@ import com.twitter.finagle.http.Request
 import com.twitter.finatra.http.Controller
 import com.yaochin.battleship.BattleshipSwagger
 import com.yaochin.battleship.domain.api._
-import com.yaochin.battleship.service.GameSessionService
+import com.yaochin.battleship.service.UserService
 import com.yaochin.battleship.util.JsonSupport
 
 /**
   * Created on 1/31/17.
   */
-class GameSessionController @Inject()(service: GameSessionService)
+class UserController @Inject()(service: UserService)
   extends Controller
   with SwaggerSupport
   with JsonSupport {
@@ -22,8 +22,8 @@ class GameSessionController @Inject()(service: GameSessionService)
 
   postWithDoc("/battleship/users/") { o =>
     o.summary("Enter a battleship game")
-      .tag("Game Session")
-      .bodyParam[JoinRequest]("JoinRequestRepresentation")
+      .tag("User")
+      .bodyParam[JoinRequest]("JoinRequest")
       .responseWith[JoinResponse](200, "Join a new game")
   } { req: Request =>
     val request =  fromJson[JoinRequest](req.contentString)
@@ -33,15 +33,15 @@ class GameSessionController @Inject()(service: GameSessionService)
 
   getWithDoc("/battleship/users") { o =>
     o.summary("Return the current waiting list")
-      .tag("Game Session")
+      .tag("User")
       .responseWith[UserResponses](200, "List of users")
   } { req: Request =>
-    service.listUsers.map(response.ok.json _)
+    service.list.map(response.ok.json _)
   }
 
   getWithDoc("/battleship/users/:userId") { o =>
     o.summary("Get the user info")
-      .tag("Game Session")
+      .tag("User")
       .routeParam[String]("userId")
       .responseWith[UserDetailsResponse](200, "User")
       .responseWith(404, "Not Found")
