@@ -2,10 +2,12 @@ package com.yaochin.battleship.service
 
 import javax.inject.Inject
 
+import com.twitter.finatra.http.exceptions.NotFoundException
 import com.twitter.util.{Future, FuturePool}
 import com.yaochin.battleship.domain.AttackResult._
 import com.yaochin.battleship.domain.{AttackResult, _}
 import com.yaochin.battleship.domain.api.{UserDetailsResponse, AttackResponse, AttackRequest}
+import com.twitter.inject.Logging
 
 /**
   * Created on 1/31/17.
@@ -15,11 +17,15 @@ trait BattleService {
 }
 
 class BattleServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
-  extends BattleService {
+  extends BattleService
+  with Logging {
 
   override def attack(userId: String, attackRequest: AttackRequest): Future[AttackResponse] = {
     pool{
-      matrix.withWriteLock{
+
+      info(s"New user attack request: $userId, $attackRequest")
+
+      val response = matrix.withWriteLock{
         val maybeOutput = for {
           source <- matrix.get(userId)
           targetId <- source.opponentId
@@ -52,9 +58,13 @@ class BattleServiceImpl @Inject()(pool: FuturePool, matrix: GameMatrix)
             )
           )
         }.getOrElse(
-          throw new IllegalStateException(s"Unable to process the request: $userId, attackRequest: $attackRequest")
+          throw new NotFoundException(s"User Id/opponent Id not found, userId: $userId, attackRequest: $attackRequest")
         )
       }
+
+      info(s"Attack response: $userId, $attackRequest, ${response.result}")
+
+      response
 
     }
   }

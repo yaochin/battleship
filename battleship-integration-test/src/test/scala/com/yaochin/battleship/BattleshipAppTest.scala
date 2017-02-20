@@ -80,7 +80,7 @@ class BattleshipAppTest extends FreeSpec with FeatureTestMixin with MockitoSugar
 
   }
 
-  "POST /battleship/user/:userId/attack" - {
+  "POST /battleship/users/:userId/attacks" - {
     "200" in {
       // Given
       val ship1 = BattleshipBuilder()
@@ -105,7 +105,7 @@ class BattleshipAppTest extends FreeSpec with FeatureTestMixin with MockitoSugar
 
       // When / Then
       server.httpPost(
-        path = s"/battleship/users/${attacker.id}/attack",
+        path = s"/battleship/users/${attacker.id}/attacks",
         postBody =
           """
             |{

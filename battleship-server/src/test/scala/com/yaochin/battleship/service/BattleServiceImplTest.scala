@@ -2,6 +2,7 @@ package com.yaochin.battleship.service
 
 import java.util.concurrent.Executors
 
+import com.twitter.finatra.http.exceptions.NotFoundException
 import com.twitter.util.{Await, FuturePool}
 import com.yaochin.battleship.domain.AttackResult.AttackResult
 import com.yaochin.battleship.domain._
@@ -378,7 +379,7 @@ class BattleServiceImplTest extends FreeSpec with Matchers with MockitoSugar{
       )
     }
 
-    "return IllegalStateException if user not found" in {
+    "return NotFoundException if user not found" in {
       // Given
       val self = UserBuilder().build
       val opponent = UserBuilder().build
@@ -389,12 +390,12 @@ class BattleServiceImplTest extends FreeSpec with Matchers with MockitoSugar{
       matrix.remove(self.id)
 
       // When / Then
-      intercept[IllegalStateException](
+      intercept[NotFoundException](
         Await.result(service.attack(self.id, attack))
       )
     }
 
-    "return IllegalStateException if opponent not found" in {
+    "return NotFoundException if opponent not found" in {
       // Given
       val self = UserBuilder().build
       val opponent = UserBuilder().build
@@ -405,7 +406,7 @@ class BattleServiceImplTest extends FreeSpec with Matchers with MockitoSugar{
       matrix.remove(opponent.id)
 
       // When / Then
-      intercept[IllegalStateException](
+      intercept[NotFoundException](
         Await.result(service.attack(self.id, attack))
       )
     }

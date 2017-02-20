@@ -15,7 +15,7 @@ import com.yaochin.battleship.util.JsonSupport
 class BattleController @Inject()(service: BattleService) extends Controller with SwaggerSupport with JsonSupport{
   implicit protected val swagger = BattleshipSwagger
 
-  postWithDoc("/battleship/users/:userId/attack") { o =>
+  postWithDoc("/battleship/users/:userId/attacks") { o =>
     o.summary("Fire an attack")
       .tag("Battle")
       .routeParam[String]("userId")

@@ -24,6 +24,8 @@ class UserServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix, idGene
 
   override def join(joinRequest: JoinRequest): Future[JoinResponse] = {
     pool {
+      info(s"New user join request")
+
       val newUserId = idGenerator.next
       val maybeOpponent = gameMatrix.withWriteLock {
         gameMatrix.nextAvailableUser match {
@@ -37,6 +39,8 @@ class UserServiceImpl @Inject()(pool: FuturePool, gameMatrix: GameMatrix, idGene
 
       val userSession = createNewUser(newUserId, maybeOpponent.map(_.id), joinRequest.battleships)
       gameMatrix.addOrUpdate(userSession)
+
+      info(s"New user joined: $userSession")
 
       JoinResponse(userSession.id, userSession.opponentId, joinRequest)
     }

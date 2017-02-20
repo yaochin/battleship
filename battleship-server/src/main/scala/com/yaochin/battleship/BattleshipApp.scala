@@ -5,7 +5,7 @@ import com.github.xiaodongw.swagger.finatra.{SwaggerController, WebjarsControlle
 import javax.inject.{Inject, Singleton}
 import com.twitter.finagle.http.{Response, Request}
 import com.twitter.finatra.http.HttpServer
-import com.twitter.finatra.http.exceptions.ExceptionMapper
+import com.twitter.finatra.http.exceptions.{NotFoundException, ExceptionMapper}
 import com.twitter.finatra.http.filters.ExceptionMappingFilter
 import com.twitter.finatra.http.response.ResponseBuilder
 import com.twitter.finatra.http.routing.HttpRouter
@@ -35,6 +35,8 @@ class BattleshipApp extends HttpServer{
   override protected def configureHttp(router: HttpRouter): Unit = {
     router.filter[ExceptionMappingFilter[Request]]
       .exceptionMapper[IllegalArgumentExceptionMapper]
+      .exceptionMapper[NotFoundExceptionMapper]
+      .exceptionMapper[IllegalStateExceptionMapper]
       .add[WebjarsController]
       .add(new SwaggerController(swagger = BattleshipSwagger))
       .add[UserController]
@@ -69,5 +71,14 @@ class IllegalStateExceptionMapper @Inject()(response: ResponseBuilder)
 
   override def toResponse(request: Request, e: IllegalStateException): Response = {
     response.internalServerError.json(ErrorResponse("Internal Server Error", e.getMessage))
+  }
+}
+
+@Singleton
+class NotFoundExceptionMapper @Inject()(response: ResponseBuilder)
+  extends ExceptionMapper[NotFoundException] {
+
+  override def toResponse(request: Request, e: NotFoundException): Response = {
+    response.notFound.json(ErrorResponse("Not Found", e.getMessage()))
   }
 }
